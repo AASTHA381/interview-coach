@@ -117,6 +117,10 @@
     document.querySelectorAll('.cmd-btn').forEach((b) => b.classList.toggle('active', b.dataset.cmd === cmd));
   }
 
+  // Same patterns as lib/redact.js; checked before the message is shown so a pasted key never appears in the chat.
+  const KEY_RE = /gsk_[A-Za-z0-9]{16,}|AIza[0-9A-Za-z_-]{20,}|sk-[A-Za-z0-9_-]{20,}|\b(?:ghp|gho|ghu|ghs|ghr)_[A-Za-z0-9]{20,}|github_pat_[A-Za-z0-9_]{20,}|xox[baprs]-[A-Za-z0-9-]{10,}/;
+  const looksLikeApiKey = (text) => KEY_RE.test(text);
+
   function guessCommand(text) {
     const w = text.trim().split(/\s+/)[0].toLowerCase().replace(/[^a-z]/g, '');
     return COMMAND_GROUPS.some((g) => g.items.some(([c]) => c === w)) ? w : null;
@@ -145,6 +149,13 @@
       autosize();
     }
 
+    if (looksLikeApiKey(text)) {
+      inputEl.value = '';
+      autosize();
+      if (chatEl.querySelector('.welcome')) chatEl.textContent = '';
+      addMessage('assistant', 'That looks like an API key, so I did not send or save it. Add keys only in Settings, where they are stored encrypted and never shown.', 'error');
+      return;
+    }
     if (chatEl.querySelector('.welcome')) chatEl.textContent = '';
     addMessage('user', text);
     const cmd = guessCommand(text);

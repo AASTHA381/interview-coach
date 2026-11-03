@@ -444,3 +444,34 @@ test('extract: real OCR helper reads a scanned PDF (macOS only, skipped when hel
   assert.match(r.text, /Jane Doe/);
   assert.match(r.text, /billing platform migration/);
 });
+
+const { containsApiKey, redactSecrets } = require('../lib/redact');
+
+test('redact: detects and masks API keys from common providers', () => {
+  const groq = 'gsk_' + 'a1B2c3D4e5F6g7H8i9J0k1L2';
+  const google = 'AIza' + 'SyD-1234567890abcdefghijklmnop';
+  const openai = 'sk-' + 'proj-abcdefghijklmnopqrstuvwx';
+  for (const k of [groq, google, openai]) {
+    assert.ok(containsApiKey(`my key is ${k} thanks`), k.slice(0, 6));
+    assert.ok(!redactSecrets(`error for ${k}`).includes(k));
+    assert.match(redactSecrets(`error for ${k}`), /\[hidden key\]/);
+  }
+  assert.ok(!containsApiKey('I led a migration with sk-learn and gsk lines in a 12-step plan'));
+  assert.ok(!containsApiKey('Tell me about a time you used AI tools'));
+  assert.strictEqual(redactSecrets('bad key: mysecretvalue123', ['mysecretvalue123']), 'bad key: [hidden key]');
+  assert.ok(!redactSecrets('Authorization: Bearer abcdefghijklmnopqrstuvwx').includes('abcdefghijklmnopqrstuvwx'));
+});
+
+test('redact: provider errors never echo a key', async () => {
+  const realFetch = global.fetch;
+  const key = 'gsk_' + 'Zz9Yy8Xx7Ww6Vv5Uu4Tt3Ss2';
+  global.fetch = async () => new Response(JSON.stringify({ error: { message: `Invalid key ${key} for org` } }), { status: 400 });
+  try {
+    await assert.rejects(
+      streamChat('groq', { apiKey: key, model: 'm', system: 's', messages: [], signal: new AbortController().signal, onDelta: () => {} }),
+      (err) => !err.message.includes(key) && /hidden key/.test(err.message)
+    );
+  } finally {
+    global.fetch = realFetch;
+  }
+});

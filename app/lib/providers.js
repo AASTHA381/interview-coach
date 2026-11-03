@@ -21,9 +21,11 @@ const DEPRECATED_MODELS = new Set([
 const MAX_RETRY_WAIT_SECONDS = 70;
 const MAX_RETRIES = 2;
 
+const { redactSecrets } = require('./redact');
+
 class ProviderError extends Error {
   constructor(message, status, retryAfter) {
-    super(message);
+    super(redactSecrets(message));
     this.status = status;
     this.retryAfter = retryAfter;
   }
@@ -42,6 +44,7 @@ async function errorFromResponse(res, provider) {
     detail = (data && data.error && (data.error.message || data.error)) || '';
     if (typeof detail !== 'string') detail = JSON.stringify(detail);
   } catch (_) {}
+  detail = redactSecrets(detail);
   const name = provider === 'gemini' ? 'Gemini' : 'Groq';
   if (res.status === 429) {
     const daily = /per day|\bTPD\b|\bRPD\b/i.test(detail);

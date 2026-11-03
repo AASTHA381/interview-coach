@@ -1,6 +1,6 @@
 # Interview Coach (desktop app)
 
-A macOS desktop app version of the AI Interview Coach. Same coach as the instruction-file project in `../vscode-version`, but it runs on its own: no VS Code, no paid subscription. You paste a free API key once.
+A macOS desktop app version of the AI Interview Coach. Same coach as the instruction-file project in `../InterviewCoach`, but it runs on its own: no VS Code, no paid subscription. You paste a free API key once.
 
 ## Use it
 

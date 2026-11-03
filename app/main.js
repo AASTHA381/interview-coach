@@ -7,6 +7,7 @@ const { streamChat, testKey, DEFAULT_MODELS, DEPRECATED_MODELS } = require('./li
 const { visibleText, hasStateBlock, mergeStateFromResponse } = require('./lib/state');
 const { LIMITS, estimateTokens, fitToBudget } = require('./lib/budget');
 const { extractTextFromFile, clampText } = require('./lib/extract');
+const { containsApiKey, redactSecrets, KEY_IN_CHAT_MESSAGE } = require('./lib/redact');
 
 // In the packaged app the helper is unpacked next to app.asar so it can be executed.
 const ocrPath = () => path.join(__dirname, 'native', 'ic-ocr').replace('app.asar' + path.sep, 'app.asar.unpacked' + path.sep);
@@ -95,7 +96,9 @@ function writeState(content) {
 function loadChat() {
   const c = readJson(chatFile(), {});
   return {
-    messages: Array.isArray(c.messages) ? c.messages : [],
+    messages: Array.isArray(c.messages)
+      ? c.messages.map((m) => ({ role: m.role, content: redactSecrets(m.content) }))
+      : [],
     activeCommand: COMMANDS[c.activeCommand] ? c.activeCommand : null,
     args: typeof c.args === 'string' ? c.args : '',
     lastCompany: typeof c.lastCompany === 'string' ? c.lastCompany : '',
@@ -144,7 +147,7 @@ async function makeDigest(kind, text) {
     const digest = out.text.trim();
     return digest.length > 40 ? { digest } : { digest: null, reason: 'The model returned an empty summary.' };
   } catch (err) {
-    return { digest: null, reason: controller.signal.aborted ? 'Condensing timed out.' : err.message || String(err) };
+    return { digest: null, reason: controller.signal.aborted ? 'Condensing timed out.' : redactSecrets(err.message || String(err)) };
   } finally {
     clearTimeout(timer);
   }
@@ -188,6 +191,7 @@ async function handleSend(text) {
   if (currentRequest) return { error: 'The coach is still replying.' };
   const cleaned = String(text || '').trim();
   if (!cleaned) return { error: 'Empty message.' };
+  if (containsApiKey(cleaned)) return { error: KEY_IN_CHAT_MESSAGE, blocked: true };
 
   const chat = loadChat();
   const routed = route(cleaned, chat.activeCommand);
@@ -287,13 +291,13 @@ async function handleSend(text) {
       currentRequest = null;
       chat.messages.pop();
       saveChat(chat);
-      return { error: err.message || String(err), restoreText: cleaned };
+      return { error: redactSecrets(err.message || String(err)), restoreText: cleaned };
     }
   }
   currentRequest = null;
 
   const full = stopped ? partial : result.text;
-  let display = visibleText(full);
+  let display = redactSecrets(visibleText(full));
   let stateSaved = false;
   let warning = '';
 
@@ -333,6 +337,10 @@ function registerIpc() {
   ipcMain.handle('app:init', () => {
     const settings = loadSettings();
     const chat = loadChat();
+    // Rewrite the chat file if an older version stored a pasted key in it.
+    try {
+      if (containsApiKey(fs.readFileSync(chatFile(), 'utf8'))) saveChat(chat);
+    } catch (_) {}
     return {
       provider: settings.provider,
       models: settings.models,
@@ -385,7 +393,7 @@ function registerIpc() {
       const r = await testKey(provider, apiKey, model);
       return r.ok ? { ok: true, model: r.model } : { ok: false, error: 'No response from the model.' };
     } catch (err) {
-      return { ok: false, error: err.message || String(err) };
+      return { ok: false, error: redactSecrets(err.message || String(err), [apiKey]) };
     }
   });
 
@@ -412,7 +420,7 @@ function registerIpc() {
       const { text, truncated, ocr } = await extractTextFromFile(filePaths[0], { ocrPath: ocrPath() });
       return { name: path.basename(filePaths[0]), text, truncated, ocr };
     } catch (err) {
-      return { error: err.message || String(err) };
+      return { error: redactSecrets(err.message || String(err)) };
     }
   });
 
