@@ -1,0 +1,8 @@
+node_modules/
+dist/
+.DS_Store
+native/ic-ocr
+coaching_state*.md
+docs.json
+chat.json
+settings.json

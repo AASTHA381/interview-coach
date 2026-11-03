@@ -1,0 +1,40 @@
+{
+  "name": "interview-coach",
+  "version": "1.0.0",
+  "description": "AI Interview Coach: a desktop app that coaches you through interviews, with persistent progress tracking",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test/app.test.js",
+    "build:native": "swiftc -O native/ocr.swift -o native/ic-ocr",
+    "dist:mac": "npm run build:native && electron-builder --mac dir"
+  },
+  "build": {
+    "appId": "com.interviewcoach.app",
+    "productName": "Interview Coach",
+    "files": [
+      "main.js",
+      "preload.js",
+      "lib/**",
+      "src/**",
+      "prompts/**",
+      "native/ic-ocr"
+    ],
+    "asarUnpack": ["native/ic-ocr"],
+    "mac": {
+      "category": "public.app-category.productivity",
+      "icon": "build/icon.png",
+      "target": [
+        "dir"
+      ]
+    }
+  },
+  "devDependencies": {
+    "electron": "^33.0.0",
+    "electron-builder": "^25.1.8"
+  },
+  "dependencies": {
+    "mammoth": "^1.13.0",
+    "pdfjs-dist": "^3.11.174"
+  }
+}

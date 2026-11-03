@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self' data:;" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Interview Coach</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="drag-strip"></div>
+      <div class="brand">
+        <div class="brand-mark">IC</div>
+        <div>
+          <div class="brand-name">Interview Coach</div>
+          <div class="brand-sub" id="engineLabel">—</div>
+        </div>
+      </div>
+
+      <nav class="commands" id="commands"></nav>
+
+      <div class="sidebar-footer">
+        <button class="side-btn" id="newChatBtn">＋ New chat</button>
+        <button class="side-btn" id="docsBtn">📄 Resume &amp; JDs <span class="docs-badge" id="docsBadge"></span></button>
+        <button class="side-btn" id="settingsBtn">⚙ Settings</button>
+        <button class="side-btn" id="revealBtn">📁 Show progress file</button>
+        <div class="state-pill" id="statePill">No progress saved yet</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="drag-strip main-drag"></div>
+      <div class="chat" id="chat"></div>
+      <div class="composer">
+        <textarea id="input" rows="1" placeholder="Type a command (e.g. kickoff, prep Stripe) or reply to the coach…"></textarea>
+        <button id="sendBtn" class="send-btn" title="Send (Enter)">Send</button>
+        <button id="stopBtn" class="send-btn stop hidden" title="Stop">Stop</button>
+      </div>
+      <div class="hint">Enter to send · Shift+Enter for a new line</div>
+    </main>
+  </div>
+
+  <div class="modal-backdrop hidden" id="settingsModal">
+    <div class="modal">
+      <h2>Settings</h2>
+
+      <label class="field-label" for="providerSelect">AI engine (free tiers available)</label>
+      <select id="providerSelect">
+        <option value="groq">Groq (free tier, small per-minute limits)</option>
+        <option value="gemini">Google Gemini (larger limits, web search)</option>
+      </select>
+
+      <label class="field-label" for="modelInput">Model</label>
+      <input id="modelInput" type="text" spellcheck="false" />
+
+      <label class="field-label" for="keyInput">API key <span id="keyStatus" class="muted"></span></label>
+      <input id="keyInput" type="password" autocomplete="off" spellcheck="false" placeholder="Paste your key (stored encrypted on this Mac)" />
+      <div class="key-help" id="keyHelp"></div>
+
+      <label class="check" id="searchRow">
+        <input type="checkbox" id="searchToggle" /> Use web search for <code>research</code> and <code>prep</code> (Gemini only)
+      </label>
+
+      <div class="modal-status" id="settingsStatus"></div>
+
+      <div class="modal-actions">
+        <button class="ghost-btn" id="testBtn">Test connection</button>
+        <button class="ghost-btn danger" id="clearKeyBtn">Remove key</button>
+        <span class="spacer"></span>
+        <button class="ghost-btn" id="closeSettingsBtn">Close</button>
+        <button class="primary-btn" id="saveSettingsBtn">Save</button>
+      </div>
+
+      <hr />
+      <div class="data-actions">
+        <button class="ghost-btn" id="exportBtn">Export progress file…</button>
+        <button class="ghost-btn danger" id="resetBtn">Reset all progress…</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop hidden" id="docsModal">
+    <div class="modal wide">
+      <h2>Resume &amp; job descriptions</h2>
+      <p class="muted-p">The coach uses these to ask questions about <em>your</em> background and the <em>real</em> role. Files are read on this Mac. The text is sent to your AI provider when you chat, like everything else.</p>
+
+      <div class="doc-card">
+        <div class="doc-head"><strong>Resume</strong> <span class="muted" id="resumeStatus">not added</span></div>
+        <div class="doc-actions">
+          <button class="ghost-btn" id="resumePickBtn">Choose file (PDF, DOCX, TXT, scan or photo)…</button>
+          <button class="ghost-btn danger hidden" id="resumeRemoveBtn">Remove</button>
+        </div>
+        <textarea id="resumeText" rows="5" placeholder="…or paste your resume text here"></textarea>
+        <div class="doc-actions">
+          <button class="primary-btn" id="resumeSaveBtn">Save resume</button>
+          <span class="doc-status" id="resumeMsg"></span>
+        </div>
+      </div>
+
+      <div class="doc-card">
+        <div class="doc-head"><strong>Job descriptions</strong> <span class="muted">one per company</span></div>
+        <div id="jdList" class="jd-list"></div>
+        <input id="jdCompany" type="text" placeholder="Company name (e.g. Stripe)" spellcheck="false" />
+        <div class="doc-actions">
+          <button class="ghost-btn" id="jdPickBtn">Choose file (PDF, DOCX, TXT, scan or photo)…</button>
+        </div>
+        <textarea id="jdText" rows="5" placeholder="…or paste the job description here"></textarea>
+        <div class="doc-actions">
+          <button class="primary-btn" id="jdSaveBtn">Save job description</button>
+          <span class="doc-status" id="jdMsg"></span>
+        </div>
+      </div>
+
+      <div class="modal-actions">
+        <span class="spacer"></span>
+        <button class="ghost-btn" id="closeDocsBtn">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="markdown.js"></script>
+  <script src="renderer.js"></script>
+</body>
+</html>

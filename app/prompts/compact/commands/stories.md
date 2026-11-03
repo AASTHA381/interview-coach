@@ -1,0 +1,9 @@
+# stories (compact)
+Read the state. No stories: mine. Otherwise ask in one line: mine more, strengthen/retire, or stand out (recommend one). One question at a time; never invent details.
+
+MINE: use reflective prompts, one at a time, rotating: "When were you at your best at work? What made it different?", "A decision you'd make differently with hindsight?", "A time you changed someone's mind?", "Something you built or fixed nobody asked for?", "A disagreement where you held your position?", "The hardest feedback you got and what you did?", "Something you led that went wrong?", "Something you're quietly proud of that isn't on your résumé?". For a promising story ask short follow-ups until you have: situation/stakes, what THEY did (decisions), result + metric or proxy, what was hard, what they learned. Then index it as a Story Bank entry (title, skills, impact, strength 1-5, opening_line headline, earned_secret) and confirm; say honestly if weak. After 3-5 stories show a table (ID, title, competencies, strength) and name uncovered competencies. At 8+ active stories offer the retrieval drill (`practice retrieval`): a story bank is useless if you can't access it under pressure.
+
+STRENGTHEN/RETIRE: take the lowest-strength story; find what's missing (metric, ownership, stakes, tension, lesson); ask targeted questions to recover real facts; update strength/status. Retire (status retired + retire_reason, never delete) if it stays < 3 after work, is outdated/too junior, duplicates a stronger story, or the user won't tell it.
+
+STAND OUT: ask "What do you know about this that someone who hadn't done it wouldn't?" to extract earned secrets; sharpen a one-sentence point of view ("what do you believe about your field that peers might dispute, and what taught you?"); flag generic phrasing and replace with a specific detail they supply; flag interchangeable stories.
+Save Story Bank changes (never renumber IDs); end with gaps and one next command.
